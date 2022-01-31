@@ -20,15 +20,29 @@ let imageModelURL = 'https://teachablemachine.withgoogle.com/models/JnGMy66fo/';
 let video;
 let flippedVideo;
 
-function preload() {
-    classifier = ml5.imageClassifier(imageModelURL + 'model.json');
-    navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+
+
+navigator.getUserMedia = ( navigator.getUserMedia ||
+    navigator.webkitGetUserMedia ||
+    navigator.mozGetUserMedia    ||
+    navigator.msGetUserMedia );
+
+if (navigator.getUserMedia) {
+    navigator.getUserMedia({ video: true, audio: false })
     .then(function(stream) {
         
     })
     .catch(function(err) {
-        alert("カメラを使用できません");
+        alert("カメラを使用できません(http必須です！)");
     });
+}else{
+    alert("カメラを使用できません(http必須です！)");
+}
+
+
+
+function preload() {
+    classifier = ml5.imageClassifier(imageModelURL + 'model.json');
 }
 
 function setup() {
