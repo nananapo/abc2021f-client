@@ -32,7 +32,7 @@ async function getUserNameAsync(userId) {
 async function SetNameAsync(name) {
     try{
         await db.collection('users').doc(getUserId()).set({
-            name: this.name,
+            name: name,
         });
         return true;
     }catch(e){
