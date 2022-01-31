@@ -102,7 +102,7 @@
 
     <script type="text/x-template" id="session">
         <div>
-            <div class="card p20 m10 shadow-1">
+            <div v-if="!isEnded" class="card p20 m10 shadow-1">
                 <div class="mb10 t2">{{statusText}}</div>
                 <button v-if="isWaiting && isOwner" v-on:click="startSession">Start Session</button>
                 <button v-if="isStarted && isOwner" v-on:click="endSession">End Session</button>
@@ -110,6 +110,13 @@
             </div>
 
             <session-info ref="sessionInfo" :sessionId="sessionId" @updated="sessionInfoUpdated"></session-info>
+
+
+            <div v-if="isEnded" class="card p20 m10 shadow-1">
+                <button v-if="isEnded && !isPlayingHistory" v-on:click="isPlayingHistory = true">再生</button>
+                <button v-if="isEnded && isPlayingHistory" v-on:click="isPlayingHistory = false">一時停止</button>
+                <div>{{timeNow}}</div>
+            </div>
 
             <div class="card p20 m10 shadow-1">
                 <canvas ref="chart1" id="all-horizontal-chart" class="w100"></canvas>

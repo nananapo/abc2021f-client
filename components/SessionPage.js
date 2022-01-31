@@ -1,6 +1,6 @@
 import { createChart } from "../utils.js";
 import { SessionInfo } from "./SessionInfo.js";
-import { getUserId } from "../store.js";
+import { getSessionHistory, getUserId } from "../store.js";
 import { getIdTokenAsync } from "../store.js";
 
 const SERVER_ADDRESS = "ws://oekaki.chat:3030"
@@ -52,7 +52,7 @@ function connectServer(component, sessionId, asHost) {
 
         setTimeout(() => {
             component.$refs.sessionInfo.refresh();
-        }, 1000)
+        }, 3000)
     });
 
     socket.on("login", result => {
@@ -121,6 +121,12 @@ const SessionPage = Vue.component('Session', {
             isEnded: false,
             isOwner: false,
 
+            isPlayingHistory: false,
+            playIndex: 0,
+            historyData: {},
+            timeNow: "",
+
+
             isConnected: false,
             connectStatusText: "",
             users: [],
@@ -141,18 +147,64 @@ const SessionPage = Vue.component('Session', {
             this.isStarted = false;
             this.disconnectFunc();
         },
-        sessionInfoUpdated: function () {
+        sessionInfoUpdated: async function () {
+
             let info = this.$refs.sessionInfo;
             this.isWaiting = info.status === "waiting";
             this.isStarted = info.status === "started";
             this.isEnded = info.status === "ended";
             this.isOwner = info.ownerId === getUserId();
+
+            this.isPlayingHistory = false;
+            this.playIndex = 0;
+            this.historyData = {};
+
+            this.packedDataSet = [];
+
+
+            if(this.isEnded){
+
+                let history = await getSessionHistory(this.sessionId);
+                if(history == null){
+                    alert("セッションの履歴を取得できませんでした");
+                    return;
+                }
+
+                this.playIndex = 0;
+                this.historyData = history;
+                this.isPlayingHistory = false;
+            }
+        },
+        historyPlayLoop: function () {
+
+            if(!this.isPlayingHistory){
+                return;
+            }
+
+            let times = Object.keys(this.historyData);
+            let time = times[this.playIndex];
+            let data = this.historyData[time];
+
+            this.addPackedData(time, data);
+
+            this.playIndex++;
+            if (this.playIndex >= this.historyData.length) {
+                this.isPlayingHistory = false;
+                this.playIndex = 0;
+                return;
+            }
+
+            let nextTime = times[this.playIndex];
+            setTimeout(()=>this.historyPlayLoop(), Date.parse(nextTime) - Date.parse(time));
         },
         joinSession: function () {
             if (!this.isStarted || this.isConnected) return;
             connectServer(this, this.sessionId, false);
         },
         addPackedData: function (time, data) {
+
+            this.timeNow = time;
+
             this.packedDataSet.push({
                 time: time,
                 data: data
@@ -160,9 +212,6 @@ const SessionPage = Vue.component('Session', {
             if (this.packedDataSet.length > 60) {
                 this.packedDataSet.shift();
             }
-
-            console.log(data);
-
             this.refreshChart();
         },
         refreshChart: function () {
@@ -210,7 +259,7 @@ const SessionPage = Vue.component('Session', {
                 timeCount++;
             }
 
-            this.chart1 = createChart(this.$refs.chart1, "関心度", labels, data);
+            this.chart1 = createChart(this.$refs.chart1, "関心度 : " + this.packedDataSet[this.packedDataSet.length-1].time, labels, data);
 
             window.scrollTo(0, scroll);
         }
@@ -235,6 +284,13 @@ const SessionPage = Vue.component('Session', {
         }
         next();
     },
+    watch: {
+        isPlayingHistory: function(newVal, oldVal){
+            if(newVal){
+                setTimeout(()=>this.historyPlayLoop(), 1);
+            }
+        }
+    }
 });
 
 export { SessionPage };

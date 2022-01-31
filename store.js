@@ -15,13 +15,23 @@ firebase.initializeApp(firebaseConfig);
 let auth = firebase.auth();
 let db = firebase.firestore();
 
+let nameCache = {};
+
 async function getUserNameAsync(userId) {
+
+    if (userId in nameCache) {
+        return nameCache[userId];
+    }
+
     try {
         let snapshot = await db.collection("users").doc(userId).get();
         if (!snapshot.exists) {
             return "User not found";
         }
-        return snapshot.data().name;
+
+        let name = snapshot.data().name;
+        nameCache[userId] = name;
+        return name;
     } catch (e) {
         console.log(e);
         return "Failed to get user name";
@@ -111,8 +121,27 @@ async function createSession(sessionId, name, description, startTime, endTime) {
     }
 }
 
+async function getSessionHistory(sessionId){
+    try{
+        let snapshot = await db.collection("session_data").doc(sessionId).get();
+        
+        if(!snapshot.exists){
+            return null;
+        }
+
+        var data = snapshot.data().data;
+        // parse Json
+        var obj = JSON.parse(data);
+        return obj;
+    }catch(e){
+        console.error(e);
+        return null;
+    }
+}
+
 Vue.use(Vuex)
 
+// 結局使わなかった ( ;∀;)
 let store = new Vuex.Store({
     state: {
         count: 0
@@ -125,4 +154,4 @@ let store = new Vuex.Store({
     }
 });
 
-export { store, auth, getUserNameAsync, getIdTokenAsync, getUserId, SignoutAsync, SignupAsync, SetNameAsync, GetSessionInfoAsync, createSession }
+export { store, auth, getUserNameAsync, getIdTokenAsync, getUserId, SignoutAsync, SignupAsync, SetNameAsync, GetSessionInfoAsync, createSession ,getSessionHistory}
