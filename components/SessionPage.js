@@ -3,7 +3,7 @@ import { SessionInfo } from "./SessionInfo.js";
 import { getSessionHistory, getUserId } from "../store.js";
 import { getIdTokenAsync } from "../store.js";
 
-const SERVER_ADDRESS = "ws://oekaki.chat:3030"
+const SERVER_ADDRESS = "wss://oekaki.chat:3030"
 
 
 // socket通信

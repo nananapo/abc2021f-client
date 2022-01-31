@@ -33,10 +33,8 @@ if (navigator.getUserMedia) {
         
     })
     .catch(function(err) {
-        alert("カメラを使用できません(http必須です！)");
+        alert("カメラを使用できません");
     });
-}else{
-    alert("カメラを使用できません(http必須です！)");
 }
 
 
