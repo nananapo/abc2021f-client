@@ -22,6 +22,13 @@ let flippedVideo;
 
 function preload() {
     classifier = ml5.imageClassifier(imageModelURL + 'model.json');
+    navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+    .then(function(stream) {
+        
+    })
+    .catch(function(err) {
+        alert("カメラを使用できません");
+    });
 }
 
 function setup() {
@@ -67,6 +74,8 @@ function gotResult(error, results) {
     // The results are in an array ordered by confidence.
     // console.log(results[0]);
     let label = results[0].label;
+
+    console.log(label);
 
     labelList.push(label);
     if (labelList.length > 45) {
