@@ -24,7 +24,7 @@ function createChart(canvas,title,labels,data,min=0,max=1,step=0.1) {
     let datasets = [];
     for(let key in data){
         datasets.push({
-            label: key,
+            label: data[key].name,
             data: data[key].data,
             borderColor: 'rgba(' + data[key].color + ')',
             backgroundColor: 'rgba(0,0,0,0)',

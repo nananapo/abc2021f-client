@@ -1,6 +1,6 @@
 import { createChart } from "../utils.js";
 import { SessionInfo } from "./SessionInfo.js";
-import { getSessionHistory, getUserId } from "../store.js";
+import { getSessionHistory, getUserId , getUserNameAsync} from "../store.js";
 import { getIdTokenAsync } from "../store.js";
 
 const SERVER_ADDRESS = "wss://oekaki.chat:3030"
@@ -185,12 +185,20 @@ const SessionPage = Vue.component('Session', {
             let time = times[this.playIndex];
             let data = this.historyData[time];
 
+            if(data == null || data == undefined){
+                this.isPlayingHistory = false;
+                this.playIndex = 0;
+                this.packedDataSet = [];
+                return;
+            }
+
             this.addPackedData(time, data);
 
             this.playIndex++;
             if (this.playIndex >= this.historyData.length) {
                 this.isPlayingHistory = false;
                 this.playIndex = 0;
+                this.packedDataSet = [];
                 return;
             }
 
@@ -214,7 +222,7 @@ const SessionPage = Vue.component('Session', {
             }
             this.refreshChart();
         },
-        refreshChart: function () {
+        refreshChart:async  function () {
 
             let scroll = window.scrollY;
 
@@ -225,6 +233,7 @@ const SessionPage = Vue.component('Session', {
             let labels = [];
             let data = {
                 all: {
+                    name:"平均",
                     color: '255, 99, 132, 1',
                     width: 3,
                     data: []
@@ -237,8 +246,10 @@ const SessionPage = Vue.component('Session', {
                 let obj = this.packedDataSet[objectIndex];
                 let sum = 0;
                 for (let uid in obj.data) {
+                    let name = await getUserNameAsync(uid);
                     if (!(uid in data)) {
                         data[uid] = {
+                            name:name,
                             color: '255,0,0,1',
                             data: [],
                             width: 1
